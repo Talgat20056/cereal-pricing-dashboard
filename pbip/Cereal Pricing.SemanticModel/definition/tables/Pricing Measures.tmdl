@@ -1,0 +1,170 @@
+/// Home table for all DAX measures (no data rows).
+table 'Pricing Measures'
+	lineageTag: a44dcb70-d667-54c5-b659-b0b37c2b0ed9
+
+	/// Retail dollar sales in the current filter context.
+	measure Revenue = SUM ( Sales[Revenue] )
+		formatString: \$#,0;-\$#,0;\$#,0
+		displayFolder: 1. Base
+		lineageTag: 7e6a7f15-18b2-5eb1-bd15-65e66c09bee1
+
+	/// Packages sold.
+	measure Units = SUM ( Sales[Units] )
+		formatString: #,0
+		displayFolder: 1. Base
+		lineageTag: 1c020b2b-ee1b-5cd3-bc70-46e9c85e171e
+
+	/// Ounces sold (units x pack size).
+	measure 'Volume (oz)' = SUM ( Sales[Volume (oz)] )
+		formatString: #,0
+		displayFolder: 1. Base
+		lineageTag: 6ede11e1-a4d1-52a7-a559-e9c8f894500f
+
+	/// Kilograms sold.
+	measure 'Volume (kg)' = [Volume (oz)] * 0.028349523125
+		formatString: #,0
+		displayFolder: 1. Base
+		lineageTag: 149fb189-60a5-5d40-aa73-95b0b5d195e5
+
+	/// Stores with at least one sale in context.
+	measure 'Stores Selling' = DISTINCTCOUNT ( Sales[Store ID] )
+		formatString: #,0
+		displayFolder: 1. Base
+		lineageTag: a3067adc-92ad-5dbc-9208-bd7be28235d6
+
+	/// Distinct UPCs with at least one sale in context.
+	measure 'UPCs Selling' = DISTINCTCOUNT ( Sales[UPC] )
+		formatString: #,0
+		displayFolder: 1. Base
+		lineageTag: e422fb9d-f894-501c-9cd5-d47b0485ab96
+
+	/// Revenue-weighted average shelf price per package.
+	measure 'Avg Pack Price' = DIVIDE ( [Revenue], [Units] )
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		displayFolder: 2. Price architecture
+		lineageTag: 27faeb8e-a8d3-542c-99d9-8739fb17d066
+
+	/// Units-weighted average pack size in ounces (x-axis of the price-architecture curve).
+	measure 'Avg Pack Size (oz)' = DIVIDE ( [Volume (oz)], [Units] )
+		formatString: 0.0
+		displayFolder: 2. Price architecture
+		lineageTag: 1faad0be-0313-531a-9b1f-ebd1dc5c7a32
+
+	/// Volume-weighted unit price per ounce = revenue / ounces sold.
+	measure 'Price per oz' = DIVIDE ( [Revenue], [Volume (oz)] )
+		formatString: \$#,0.000;-\$#,0.000;\$#,0.000
+		displayFolder: 2. Price architecture
+		lineageTag: 4d31670f-0732-502f-ac58-0b3197d221ae
+
+	/// Volume-weighted unit price per 100 g = revenue / grams sold x 100. The core price-architecture metric.
+	measure 'Price per 100g' = DIVIDE ( [Revenue], [Volume (oz)] * 28.349523125 ) * 100
+		formatString: \$#,0.000;-\$#,0.000;\$#,0.000
+		displayFolder: 2. Price architecture
+		lineageTag: ad9e958f-6eb3-5f4a-80ac-87487da97953
+
+	/// Category benchmark: price per 100 g across ALL brands and packs, keeping the store and period filters.
+	measure 'Category Price per 100g' = CALCULATE ( [Price per 100g], REMOVEFILTERS ( 'Product' ), REMOVEFILTERS ( 'Brand' ) )
+		formatString: \$#,0.000;-\$#,0.000;\$#,0.000
+		displayFolder: 3. Price monitoring
+		lineageTag: f5e94823-3bce-5fc3-b7bb-6b2613a36776
+
+	/// Price per 100 g of the selected brand(s) relative to the category average = 100, within the same stores and weeks.
+	measure 'Brand Price Index' = DIVIDE ( [Price per 100g], [Category Price per 100g] ) * 100
+		formatString: 0.0
+		displayFolder: 3. Price monitoring
+		lineageTag: 6917d712-5c72-55b2-a567-1cb9a9b45c24
+
+	/// Brand Price Index expressed as a premium (+) or discount (-) vs the category.
+	measure 'Price Premium %' = DIVIDE ( [Price per 100g], [Category Price per 100g] ) - 1
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 3. Price monitoring
+		lineageTag: 7007d617-12e3-5fda-b780-f2bc25fd36f1
+
+	/// Share of packages sold in weeks with a recorded promotion code.
+	measure 'Promo Share of Units' = DIVIDE ( CALCULATE ( [Units], Sales[Promo] = 1 ), [Units] )
+		formatString: 0.0%
+		displayFolder: 3. Price monitoring
+		lineageTag: 3b5bf94a-8939-550d-9c7a-16b9a1a92ed8
+
+	/// Share of category revenue in the selected stores and weeks.
+	measure 'Revenue Share' = DIVIDE ( [Revenue], CALCULATE ( [Revenue], REMOVEFILTERS ( 'Product' ), REMOVEFILTERS ( 'Brand' ) ) )
+		formatString: 0.0%
+		displayFolder: 3. Price monitoring
+		lineageTag: 475db4c9-fa23-5af4-8cf5-f01290514157
+
+	/// Own-price elasticity of the selection; brands are weighted by their revenue in context.
+	measure 'Elasticity (revenue-weighted)' =
+			DIVIDE (
+			    SUMX ( VALUES ( 'Brand'[Brand] ), [Revenue] * CALCULATE ( MIN ( 'Brand'[Elasticity] ) ) ),
+			    [Revenue]
+			)
+		formatString: 0.00
+		displayFolder: 4. Price increase what-if
+		lineageTag: 72198546-4679-5846-867d-4dd8917ea5ba
+
+	/// Elasticity used by the simulator: the brand's own estimate when one brand is in context, otherwise the revenue-weighted mix.
+	measure 'Elasticity (selected)' = IF ( HASONEVALUE ( 'Brand'[Brand] ), MIN ( 'Brand'[Elasticity] ), [Elasticity (revenue-weighted)] )
+		formatString: 0.00
+		displayFolder: 4. Price increase what-if
+		lineageTag: 0de94157-40e7-51d0-9f65-f06170fe1719
+
+	/// Units after the price change, brand by brand: Units x (1 + change)^elasticity (constant-elasticity demand).
+	measure 'Simulated Units' =
+			SUMX (
+			    VALUES ( 'Brand'[Brand] ),
+			    VAR e = CALCULATE ( MIN ( 'Brand'[Elasticity] ) )
+			    RETURN [Units] * POWER ( 1 + [Price Change % Value], e )
+			)
+		formatString: #,0
+		displayFolder: 4. Price increase what-if
+		lineageTag: b884afb6-8d7f-5a8b-a478-07790bb409d1
+
+	/// Revenue after the price change: Revenue x (1 + change)^(1 + elasticity).
+	measure 'Simulated Revenue' =
+			SUMX (
+			    VALUES ( 'Brand'[Brand] ),
+			    VAR e = CALCULATE ( MIN ( 'Brand'[Elasticity] ) )
+			    RETURN [Revenue] * POWER ( 1 + [Price Change % Value], 1 + e )
+			)
+		formatString: \$#,0;-\$#,0;\$#,0
+		displayFolder: 4. Price increase what-if
+		lineageTag: f7965fac-7743-58b9-9010-f6d729817982
+
+	/// Change in units from the simulated price change.
+	measure 'Volume Impact %' = DIVIDE ( [Simulated Units], [Units] ) - 1
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 4. Price increase what-if
+		lineageTag: 8c44bdb7-2d36-536b-93af-228ae45f2f46
+
+	/// Change in revenue from the simulated price change (positive only when |elasticity| < 1).
+	measure 'Revenue Impact %' = DIVIDE ( [Simulated Revenue], [Revenue] ) - 1
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 4. Price increase what-if
+		lineageTag: 54633ad5-195c-5ba7-8bc2-19e39bcd3d89
+
+	/// Dollar change in revenue over the selected period from the simulated price change.
+	measure 'Revenue Impact $' = [Simulated Revenue] - [Revenue]
+		formatString: \$#,0;-\$#,0;\$#,0
+		displayFolder: 4. Price increase what-if
+		lineageTag: 3c123fcc-fd1a-5c52-bdb6-bc4892b4dc8e
+
+	/// Volume change that would leave revenue unchanged at the selected price change: -p / (1 + p). Compare with Volume Impact %.
+	measure 'Breakeven Volume Change %' = DIVIDE ( -[Price Change % Value], 1 + [Price Change % Value] )
+		formatString: +0.0%;-0.0%;0.0%
+		displayFolder: 4. Price increase what-if
+		lineageTag: cce20811-9f96-545c-9ab4-10415eee6b39
+
+	column Value
+		isHidden
+		formatString: 0
+		lineageTag: 9124bc06-cafa-5e68-a205-551b4128a9b8
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Value]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Pricing Measures' = calculated
+		mode: import
+		source = {0}
+

@@ -1,0 +1,99 @@
+/// Weekly store x UPC sales of ready-to-eat cereal at Dominick's Finer Foods (1989-1997). One row per store, UPC and week with a sale. Source: Kilts Center, Chicago Booth.
+table Sales
+	lineageTag: 6ab07dfa-f69e-5aa4-9198-2120e190f6b9
+
+	/// Foreign key to Store.
+	column 'Store ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c6cfaafe-3828-5c03-bf00-10c9befbe8d0
+		summarizeBy: none
+		sourceColumn: store_id
+
+		annotation SummarizationSetBy = User
+
+	/// Foreign key to Product (UPC without check digit, as in the Kilts files).
+	column UPC
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: e8e0edbb-4a0b-554c-899b-b55a764c1ae8
+		summarizeBy: none
+		sourceColumn: upc
+
+		annotation SummarizationSetBy = User
+
+	/// Foreign key to Calendar (Dominick's week number, week 1 = 14 Sep 1989).
+	column 'Week ID'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 415836ca-1bbb-59c7-9a3b-c21c54c2e18c
+		summarizeBy: none
+		sourceColumn: week_id
+
+		annotation SummarizationSetBy = User
+
+	/// Packages sold in the week (MOVE).
+	column Units
+		dataType: int64
+		formatString: #,0
+		lineageTag: d1c2689f-86bb-5fe8-9b4d-01711a5d6f66
+		summarizeBy: sum
+		sourceColumn: units
+
+		annotation SummarizationSetBy = User
+
+	/// Retail dollar sales = PRICE x MOVE / QTY (bundle prices unwound).
+	column Revenue
+		dataType: double
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 5689ad72-887d-579b-be10-c94f1b3fae38
+		summarizeBy: sum
+		sourceColumn: revenue
+
+		annotation SummarizationSetBy = User
+
+	/// Units x pack size in ounces.
+	column 'Volume (oz)'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: d78aaf4e-eed9-52eb-a086-ce884eabfff9
+		summarizeBy: sum
+		sourceColumn: volume_oz
+
+		annotation SummarizationSetBy = User
+
+	/// Shelf price of one package that week (PRICE / QTY). Use the Avg Pack Price measure to aggregate.
+	column 'Pack Price'
+		dataType: double
+		formatString: \$#,0.00;-\$#,0.00;\$#,0.00
+		lineageTag: 268dd7e5-1f6b-5155-a595-b9ae20bfe8b0
+		summarizeBy: none
+		sourceColumn: pack_price
+
+		annotation SummarizationSetBy = User
+
+	/// 1 if Dominick's recorded a promotion code (B bonus buy, C coupon, S price cut) that week, else 0. Promotions are under-recorded in the source.
+	column Promo
+		dataType: int64
+		formatString: 0
+		lineageTag: 48e2d23a-203f-56ee-80be-b7c1038165a4
+		summarizeBy: none
+		sourceColumn: promo
+
+		annotation SummarizationSetBy = User
+
+	partition Sales = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\fact_sales.csv"), [Delimiter = ",", Columns = 8, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"store_id", Int64.Type}, {"upc", Int64.Type}, {"week_id", Int64.Type}, {"units", Int64.Type}, {"revenue", type number}, {"volume_oz", type number}, {"pack_price", type number}, {"promo", Int64.Type}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

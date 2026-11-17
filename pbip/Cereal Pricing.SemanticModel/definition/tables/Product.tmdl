@@ -1,0 +1,113 @@
+/// One row per cereal UPC kept in the analysis (441 shelf packs; trial sizes, variety packs and non-cereal items excluded).
+table Product
+	lineageTag: aab951e6-f457-5e0f-8827-e32c3d1447d2
+
+	/// Universal Product Code (Kilts 10-digit form).
+	column UPC
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: b84a7f60-45e2-510b-b456-79bd82ff498c
+		summarizeBy: none
+		sourceColumn: upc
+
+		annotation SummarizationSetBy = User
+
+	/// Description + pack size, e.g. 'Cheerios 15 oz'.
+	column Product
+		dataType: string
+		lineageTag: 5018801c-e6a7-5afb-820e-1a34ab0e0dad
+		summarizeBy: none
+		sourceColumn: product
+
+		annotation SummarizationSetBy = User
+
+	/// Dominick's item description (truncated to 20 characters in the source).
+	column Description
+		dataType: string
+		lineageTag: 973f9ff9-8d4c-5c06-8c97-6e1ba1e00d33
+		summarizeBy: none
+		sourceColumn: description
+
+		annotation SummarizationSetBy = User
+
+	/// Brand owner / manufacturer brand: Kellogg's, General Mills, Post, Quaker, Ralston, Nabisco, Private Label (Dominick's), Malt-O-Meal, Other.
+	column Brand
+		dataType: string
+		lineageTag: 8d4a6410-d5cc-57c8-8661-550a315f5949
+		summarizeBy: none
+		sourceColumn: brand
+
+		annotation SummarizationSetBy = User
+
+	/// Sub-brand / product line (e.g. Cheerios, Frosted Flakes, Chex).
+	column 'Product Line'
+		dataType: string
+		lineageTag: 4cf9423f-bf65-5d79-a88f-d733612e7abd
+		summarizeBy: none
+		sourceColumn: product_line
+
+		annotation SummarizationSetBy = User
+
+	/// Net weight per package in ounces, parsed from the SIZE field.
+	column 'Pack Size (oz)'
+		dataType: double
+		formatString: 0.0#
+		lineageTag: a1334e04-c78a-53c0-8929-8b0282414b1c
+		summarizeBy: none
+		sourceColumn: pack_oz
+
+		annotation SummarizationSetBy = User
+
+	/// Net weight per package in grams (1 oz = 28.35 g).
+	column 'Pack Size (g)'
+		dataType: double
+		formatString: #,0
+		lineageTag: c40cd020-fa94-5da4-bdaf-ff8c8f84f135
+		summarizeBy: none
+		sourceColumn: pack_g
+
+		annotation SummarizationSetBy = User
+
+	/// Pack-size tier: 1 Small <12 oz, 2 Medium 12-16, 3 Large 16-20, 4 Family 20-30, 5 Club 30+ oz.
+	column 'Pack Tier'
+		dataType: string
+		lineageTag: 63162cd9-e779-58f1-b5c9-b3563ce6b7b8
+		summarizeBy: none
+		sourceColumn: pack_tier
+
+		annotation SummarizationSetBy = User
+
+	/// Pack size as text (e.g. '15 oz'), sorted by ounces.
+	column 'Pack Label'
+		dataType: string
+		lineageTag: 6867da73-0bdf-5355-a589-b8d40cbf0b5d
+		summarizeBy: none
+		sourceColumn: pack_label
+		sortByColumn: 'Pack Size (oz)'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = User
+
+	/// TRUE for Dominick's / Heritage House store brands.
+	column 'Private Label'
+		dataType: boolean
+		lineageTag: 900d73b0-2e3f-5ca1-a52f-284ce44c5ee8
+		summarizeBy: none
+		sourceColumn: is_private_label
+
+		annotation SummarizationSetBy = User
+
+	partition Product = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\dim_product.csv"), [Delimiter = ",", Columns = 10, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"upc", Int64.Type}, {"product", type text}, {"description", type text}, {"brand", type text}, {"product_line", type text}, {"pack_oz", type number}, {"pack_g", type number}, {"pack_tier", type text}, {"pack_label", type text}, {"is_private_label", type logical}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

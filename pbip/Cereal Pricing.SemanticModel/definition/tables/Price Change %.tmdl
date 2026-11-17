@@ -1,0 +1,29 @@
+/// What-if parameter table (GENERATESERIES). Drive it with the single-value slicer on the report.
+table 'Price Change %'
+	lineageTag: 3bb9f00d-0b8a-5182-b94c-db4e1dce408d
+
+	/// Selected price change from the what-if slicer as a fraction (5% -> 0.05); 0 when nothing is selected.
+	measure 'Price Change % Value' = SELECTEDVALUE ( 'Price Change %'[Price Change %], 0 ) / 100
+		formatString: 0%
+		lineageTag: d47980f9-ac35-5124-8921-e8e81bca2a21
+
+	/// What-if parameter: list-price change in percent applied to the selected brands (-20 to +20, 1-point steps).
+	column 'Price Change %'
+		dataType: int64
+		formatString: 0"%"
+		lineageTag: 62a9ecef-71a6-593c-baa0-bca4506892ae
+		summarizeBy: none
+		sourceColumn: [Value]
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 0
+				}
+
+		annotation SummarizationSetBy = User
+
+	partition 'Price Change %' = calculated
+		mode: import
+		source =
+				GENERATESERIES ( -20, 20, 1 )
+

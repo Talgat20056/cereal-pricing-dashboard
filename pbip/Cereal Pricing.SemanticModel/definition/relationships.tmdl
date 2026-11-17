@@ -1,0 +1,16 @@
+relationship a901228b-47e3-56ef-bf4a-9c0de1a04817
+	fromColumn: Sales.UPC
+	toColumn: Product.UPC
+
+relationship 8fb9581f-2ade-52ea-a3e2-1ea54146faa5
+	fromColumn: Sales.'Store ID'
+	toColumn: Store.'Store ID'
+
+relationship d9859514-316b-5cf7-8def-a5258efb78f6
+	fromColumn: Sales.'Week ID'
+	toColumn: Calendar.'Week ID'
+
+relationship b7f7628c-408e-5f45-941a-4ff745a267bd
+	fromColumn: Product.Brand
+	toColumn: Brand.Brand
+

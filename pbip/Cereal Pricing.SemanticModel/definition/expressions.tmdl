@@ -1,0 +1,6 @@
+/// Folder that holds the CSV files exported by prep.py (fact_sales.csv, dim_*.csv). Change this one value to repoint the model.
+expression DataFolder = "C:\path\to\output" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 9568d077-3c30-5d00-8602-3b46711ed5cf
+
+	annotation PBI_ResultType = Text
+

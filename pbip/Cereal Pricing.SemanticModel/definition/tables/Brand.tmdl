@@ -1,0 +1,158 @@
+/// Own-price elasticity per brand estimated in prep.py: ln(units) = e ln(price) + b promo + UPC x store FE + week FE, SE clustered by UPC x store. Includes a 'Category (all brands)' reference row.
+table Brand
+	lineageTag: 1135f9e2-140e-5508-9289-9a97d00d018c
+
+	column Brand
+		dataType: string
+		isKey
+		lineageTag: c64e66e1-00ba-5f82-bad7-97bb8e00cf6e
+		summarizeBy: none
+		sourceColumn: brand
+
+		annotation SummarizationSetBy = User
+
+	/// Own-price elasticity of weekly units (log-log coefficient). -2.0 means +1% price -> -2% units.
+	column Elasticity
+		dataType: double
+		formatString: 0.00
+		lineageTag: 6c67eacc-dacc-5a06-a1fd-5cbbcfcab8c9
+		summarizeBy: none
+		sourceColumn: elasticity
+
+		annotation SummarizationSetBy = User
+
+	/// Cluster-robust standard error (clusters = UPC x store).
+	column 'Std Error'
+		dataType: double
+		formatString: 0.000
+		lineageTag: 4f9d8aab-4493-57cd-aaa3-49be1876ddde
+		summarizeBy: none
+		sourceColumn: std_error
+
+		annotation SummarizationSetBy = User
+
+	column 'CI Low (95%)'
+		dataType: double
+		formatString: 0.00
+		lineageTag: 83c5950e-e3bf-5c26-8532-c856b20927cc
+		summarizeBy: none
+		sourceColumn: ci_low
+
+		annotation SummarizationSetBy = User
+
+	column 'CI High (95%)'
+		dataType: double
+		formatString: 0.00
+		lineageTag: f92530e5-e2dd-5276-91f3-4be899ab5598
+		summarizeBy: none
+		sourceColumn: ci_high
+
+		annotation SummarizationSetBy = User
+
+	/// Coefficient on the promo flag (log points of extra units in a recorded promo week, holding price constant).
+	column 'Promo Lift Coef'
+		dataType: double
+		formatString: 0.00
+		lineageTag: 04c69730-ec1e-5dd1-b04f-5aa19a52525e
+		summarizeBy: none
+		sourceColumn: promo_lift_coef
+
+		annotation SummarizationSetBy = User
+
+	/// Within R-squared after removing UPC x store and week fixed effects.
+	column 'R2 Within'
+		dataType: double
+		formatString: 0.000
+		lineageTag: 2ecd6901-f74d-5c93-8b86-e7cf74317f88
+		summarizeBy: none
+		sourceColumn: r2_within
+
+		annotation SummarizationSetBy = User
+
+	/// Store-UPC-week observations used.
+	column 'N Obs'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 7a4189d7-5608-54b8-a46a-f09e85c21e02
+		summarizeBy: none
+		sourceColumn: n_obs
+
+		annotation SummarizationSetBy = User
+
+	/// Number of UPC x store panels (clusters).
+	column 'N UPC x Store'
+		dataType: int64
+		formatString: #,0
+		lineageTag: aae7b71a-3a50-50d3-bf1c-989def1a1bdb
+		summarizeBy: none
+		sourceColumn: n_units
+
+		annotation SummarizationSetBy = User
+
+	column 'N UPCs'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 7fb38bb9-2145-5117-a926-064d36947f85
+		summarizeBy: none
+		sourceColumn: n_upcs
+
+		annotation SummarizationSetBy = User
+
+	column 'N Stores'
+		dataType: int64
+		formatString: #,0
+		lineageTag: 78ec098c-832a-5b4f-9e78-553926627f01
+		summarizeBy: none
+		sourceColumn: n_stores
+
+		annotation SummarizationSetBy = User
+
+	/// Share of category revenue over the full period.
+	column 'Revenue Share'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: bd384ab3-d0f6-5667-8c44-2b27a98a0390
+		summarizeBy: none
+		sourceColumn: revenue_share
+
+		annotation SummarizationSetBy = User
+
+	/// Plausibility check: OK if elasticity is within -5 to -0.3.
+	column Flag
+		dataType: string
+		lineageTag: f7f7016b-3468-547d-b51d-99df6bed81ea
+		summarizeBy: none
+		sourceColumn: flag
+
+		annotation SummarizationSetBy = User
+
+	column Method
+		dataType: string
+		lineageTag: 0053b1fb-3b4d-5d44-828f-91585c0da18f
+		summarizeBy: none
+		sourceColumn: method
+
+		annotation SummarizationSetBy = User
+
+	/// Robustness: same fixed effects, promo flag dropped (top 5 brands only).
+	column 'Elasticity (no promo control)'
+		dataType: double
+		formatString: 0.00
+		lineageTag: 124053a2-82da-50e5-bfa7-9f11a1d60bc2
+		summarizeBy: none
+		sourceColumn: elasticity_no_promo_control
+
+		annotation SummarizationSetBy = User
+
+	partition Brand = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\dim_brand_elasticity.csv"), [Delimiter = ",", Columns = 15, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"brand", type text}, {"elasticity", type number}, {"std_error", type number}, {"ci_low", type number}, {"ci_high", type number}, {"promo_lift_coef", type number}, {"r2_within", type number}, {"n_obs", Int64.Type}, {"n_units", Int64.Type}, {"n_upcs", Int64.Type}, {"n_stores", Int64.Type}, {"revenue_share", type number}, {"flag", type text}, {"method", type text}, {"elasticity_no_promo_control", type number}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

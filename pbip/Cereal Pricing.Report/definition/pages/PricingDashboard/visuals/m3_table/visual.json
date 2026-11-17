@@ -1,0 +1,243 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "24d7f59b93a75fa002aa",
+  "position": {
+    "x": 1164,
+    "y": 508,
+    "z": 2000,
+    "height": 222,
+    "width": 420,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Brand"
+                    }
+                  },
+                  "Property": "Brand"
+                }
+              },
+              "queryRef": "Brand.Brand",
+              "nativeQueryRef": "Brand"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Brand"
+                    }
+                  },
+                  "Property": "Elasticity"
+                }
+              },
+              "queryRef": "Brand.Elasticity",
+              "nativeQueryRef": "e",
+              "displayName": "e"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Brand"
+                    }
+                  },
+                  "Property": "CI Low (95%)"
+                }
+              },
+              "queryRef": "Brand.CI Low (95%)",
+              "nativeQueryRef": "CI low",
+              "displayName": "CI low"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Brand"
+                    }
+                  },
+                  "Property": "CI High (95%)"
+                }
+              },
+              "queryRef": "Brand.CI High (95%)",
+              "nativeQueryRef": "CI high",
+              "displayName": "CI high"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Brand"
+                    }
+                  },
+                  "Property": "R2 Within"
+                }
+              },
+              "queryRef": "Brand.R2 Within",
+              "nativeQueryRef": "R2",
+              "displayName": "R2"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Brand"
+                    }
+                  },
+                  "Property": "N Obs"
+                }
+              },
+              "queryRef": "Brand.N Obs",
+              "nativeQueryRef": "n",
+              "displayName": "n"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Brand"
+                    }
+                  },
+                  "Property": "Revenue Share"
+                }
+              },
+              "queryRef": "Brand.Revenue Share",
+              "nativeQueryRef": "share",
+              "displayName": "share",
+              "hidden": true
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Brand"
+                  }
+                },
+                "Property": "Revenue Share"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "columnHeaders": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            },
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grid": [
+        {
+          "properties": {
+            "rowPadding": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'3 | Elasticity by brand (log-log, UPC x store + week fixed effects)'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

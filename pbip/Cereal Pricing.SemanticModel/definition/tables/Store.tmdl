@@ -1,0 +1,100 @@
+/// Dominick's stores in the Chicago area with the chain's pricing zone and price tier (High / Medium / Low = 'Cub fighter') from the Kilts demographics file.
+table Store
+	lineageTag: fd158cd5-80ec-5bc6-8f2e-e51e5ea36c9c
+
+	/// Dominick's store number.
+	column 'Store ID'
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: d75bb5c1-740d-5109-b951-9fd806bd25c7
+		summarizeBy: none
+		sourceColumn: store_id
+
+		annotation SummarizationSetBy = User
+
+	/// Store number and city.
+	column Store
+		dataType: string
+		lineageTag: 929ee8f4-0e55-51c1-83e3-7ccb92454445
+		summarizeBy: none
+		sourceColumn: store_name
+
+		annotation SummarizationSetBy = User
+
+	column City
+		dataType: string
+		lineageTag: 2fcc8ffe-2bc0-5483-9dcd-8060ba4740d2
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = User
+
+	column ZIP
+		dataType: string
+		lineageTag: 7ac26949-fb85-5fed-be77-b3a486c9b09f
+		summarizeBy: none
+		sourceColumn: zip
+
+		annotation SummarizationSetBy = User
+
+	/// Dominick's pricing zone (0 = unknown).
+	column Zone
+		dataType: int64
+		formatString: 0
+		lineageTag: d0037f1a-3e8c-5883-a88d-cf1b3adf7751
+		summarizeBy: none
+		sourceColumn: zone
+
+		annotation SummarizationSetBy = User
+
+	/// Chain price tier the store belongs to: High, Medium, Low (Cub-fighter stores near Cub Foods) or Unknown.
+	column 'Price Tier'
+		dataType: string
+		lineageTag: 0bb88fb8-953a-5711-bfbe-eb5abebf7c4a
+		summarizeBy: none
+		sourceColumn: price_tier
+
+		annotation SummarizationSetBy = User
+
+	/// Dominick's demographic store cluster (A-D).
+	column 'Store Cluster'
+		dataType: string
+		lineageTag: bd7102ef-82ba-536b-a89d-acc99ae3075f
+		summarizeBy: none
+		sourceColumn: store_cluster
+
+		annotation SummarizationSetBy = User
+
+	/// Log of median household income in the store's trade area (1990 census).
+	column 'Log Median Income'
+		dataType: double
+		formatString: 0.00
+		lineageTag: 1a7f4bd1-5ca3-58a8-a4e7-5d9e98ae2d81
+		summarizeBy: none
+		sourceColumn: log_median_income
+
+		annotation SummarizationSetBy = User
+
+	/// Average weekly store sales volume ($000).
+	column 'Weekly Volume (k)'
+		dataType: double
+		formatString: #,0
+		lineageTag: aad872ce-6a65-5a7d-86d8-83a8458d543d
+		summarizeBy: none
+		sourceColumn: weekly_volume_k
+
+		annotation SummarizationSetBy = User
+
+	partition Store = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\dim_store.csv"), [Delimiter = ",", Columns = 9, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"store_id", Int64.Type}, {"store_name", type text}, {"city", type text}, {"zip", type text}, {"zone", Int64.Type}, {"price_tier", type text}, {"store_cluster", type text}, {"log_median_income", type number}, {"weekly_volume_k", type number}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

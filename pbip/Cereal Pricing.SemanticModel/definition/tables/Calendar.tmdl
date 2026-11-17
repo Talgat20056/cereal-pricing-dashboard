@@ -1,0 +1,119 @@
+/// Weekly calendar: one row per Dominick's week with sales (week 1 starts 14 Sep 1989). 32 chain-wide gap weeks in the source are absent.
+table Calendar
+	lineageTag: b23f771d-80c0-5a50-b5cd-e1478479abb5
+
+	/// Dominick's week number.
+	column 'Week ID'
+		dataType: int64
+		isKey
+		formatString: 0
+		lineageTag: ea649b70-d971-5295-9474-772b43d2545c
+		summarizeBy: none
+		sourceColumn: week_id
+
+		annotation SummarizationSetBy = User
+
+	/// Thursday the week starts on.
+	column 'Week Start'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: b124a156-0740-5f8a-bfb8-24a7e9d5a951
+		summarizeBy: none
+		sourceColumn: week_start
+
+		annotation SummarizationSetBy = User
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Week End'
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: f644d2eb-9d8a-5284-83c8-3912654b4182
+		summarizeBy: none
+		sourceColumn: week_end
+
+		annotation SummarizationSetBy = User
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: d3b1fed9-8dc6-51bd-9ab4-29e5571a3532
+		summarizeBy: none
+		sourceColumn: year
+
+		annotation SummarizationSetBy = User
+
+	column Quarter
+		dataType: string
+		lineageTag: 1299eff6-3ac0-5d20-9a97-51869a1044e0
+		summarizeBy: none
+		sourceColumn: quarter
+
+		annotation SummarizationSetBy = User
+
+	/// e.g. '1991 Q3' - sorts naturally.
+	column 'Year Quarter'
+		dataType: string
+		lineageTag: 10f9a25b-2120-5228-9385-749a14ae2c15
+		summarizeBy: none
+		sourceColumn: year_quarter
+
+		annotation SummarizationSetBy = User
+
+	column 'Month Number'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 58ca566b-12ff-56f4-a81d-dc5ce81276b9
+		summarizeBy: none
+		sourceColumn: month_num
+
+		annotation SummarizationSetBy = User
+
+	column Month
+		dataType: string
+		lineageTag: 7e8ef71b-cbbb-5d7c-9892-96a20c637c39
+		summarizeBy: none
+		sourceColumn: month
+		sortByColumn: 'Month Number'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = User
+
+	/// e.g. '1991-07'.
+	column 'Year Month'
+		dataType: string
+		lineageTag: f8235db3-9821-5fe1-b965-036ad1f7e1f8
+		summarizeBy: none
+		sourceColumn: year_month
+		sortByColumn: 'Year Month Sort'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = User
+
+	column 'Year Month Sort'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 30b48ee7-5b7f-5037-a823-7724bc6d47c3
+		summarizeBy: none
+		sourceColumn: year_month_sort
+
+		annotation SummarizationSetBy = User
+
+	partition Calendar = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\dim_week.csv"), [Delimiter = ",", Columns = 10, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"week_id", Int64.Type}, {"week_start", type date}, {"week_end", type date}, {"year", Int64.Type}, {"quarter", type text}, {"year_quarter", type text}, {"month_num", Int64.Type}, {"month", type text}, {"year_month", type text}, {"year_month_sort", Int64.Type}}, "en-US")
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

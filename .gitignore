@@ -1,0 +1,16 @@
+# Raw Dominick's data - academic-use licence from the Kilts Center; download it yourself (see README)
+data/raw/
+# Row-level derived fact table (185 MB, near-raw) - regenerate with prep.py
+output/fact_sales.csv
+# Power BI local-only files
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+**/.pbi/unappliedChanges.json
+# Schema cache used by validate_pbip.py
+assets/schema-cache/
+__pycache__/
+*.pyc
+# Derived master tables from the academic-use Kilts files - regenerate with prep.py
+output/dim_product.csv
+output/dim_store.csv
+output/upc_mapping_audit.csv
